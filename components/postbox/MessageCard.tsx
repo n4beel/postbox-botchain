@@ -4,7 +4,7 @@ import Link from "next/link";
 import { formatEther, type Address } from "viem";
 import Panel from "@/components/ui/Panel";
 import { relativeTime, shortAddr, type MessageItem } from "@/lib/postbox";
-import { explorerTxUrl } from "@/lib/botchain/chain";
+import { txUrl } from "@/lib/botchain/chain";
 import { useChainId } from "wagmi";
 
 interface MessageCardProps {
@@ -52,7 +52,7 @@ export default function MessageCard({
                     </span>
                     {txHash && (
                       <a
-                        href={explorerTxUrl(chainId, txHash)}
+                        href={txUrl(chainId, txHash)}
                         target="_blank"
                         rel="noreferrer"
                         className="text-[10px] text-[#2B0F0D] font-medium underline"

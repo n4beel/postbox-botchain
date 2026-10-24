@@ -10,6 +10,7 @@ import NetworkBadge from "@/components/botchain/NetworkBadge";
 import BuiltOnBotChain from "@/components/botchain/BuiltOnBotChain";
 import { app } from "@/lib/app-config";
 import { postboxAbi } from "@/lib/botchain/abi";
+import { isBotChainId } from "@/lib/botchain/chain";
 import { getDeployment } from "@/lib/botchain/deployment";
 import { NAV_ITEMS, type SegmentTab } from "@/lib/nav";
 
@@ -21,7 +22,7 @@ export default function PageShell({ children }: PageShellProps) {
   const pathname = usePathname();
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
-  const deployment = getDeployment(chainId);
+  const deployment = isBotChainId(chainId) ? getDeployment(chainId) : undefined;
 
   const [hasUnread, setHasUnread] = useState(false);
 

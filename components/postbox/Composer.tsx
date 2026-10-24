@@ -19,6 +19,7 @@ import {
 import Button from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 import { postboxAbi } from "@/lib/botchain/abi";
+import { isBotChainId } from "@/lib/botchain/chain";
 import { getDeployment } from "@/lib/botchain/deployment";
 import { describeError } from "@/lib/errors";
 import { DEFAULT_PRICE, MAX_MESSAGE_BYTES } from "@/lib/limits";
@@ -45,7 +46,7 @@ export default function Composer({
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
   const publicClient = usePublicClient();
-  const deployment = getDeployment(chainId);
+  const deployment = isBotChainId(chainId) ? getDeployment(chainId) : undefined;
   const { toast } = useToast();
 
   const [toInput, setToInput] = useState<string>(fixedRecipient || "");
@@ -149,13 +150,13 @@ export default function Composer({
       setText("");
       setTipInput("");
       onDelivered?.(activeHash);
-      toast("Message delivered to postbox", "success");
+      toast("success", "Message delivered to postbox");
     } else if (isMineError || (receipt && receipt.status === "reverted")) {
       settledHashRef.current = activeHash;
       setStage("idle");
       setActiveHash(null);
       onFailed?.(activeHash);
-      toast("Transaction reverted on chain", "error");
+      toast("error", "Transaction reverted on chain");
     }
   }, [
     activeHash,
@@ -200,7 +201,7 @@ export default function Composer({
     } catch (err) {
       setStage("idle");
       const errSentence = describeError(err);
-      toast(errSentence, "error");
+      toast("error", errSentence);
     }
   };
 
