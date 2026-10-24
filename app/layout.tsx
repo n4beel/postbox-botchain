@@ -1,36 +1,43 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Lora, Mulish } from "next/font/google";
 import { EvmProvider } from "@/components/providers/EvmProvider";
 import { ToastProvider } from "@/components/ui/Toast";
 import { app } from "@/lib/app-config";
 import "./globals.css";
 
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"], display: "swap" });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"], display: "swap" });
+const lora = Lora({
+  variable: "--font-serif",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const mulish = Mulish({
+  variable: "--font-sans",
+  subsets: ["latin"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: `${app.name} — ${app.tagline}`,
   description: app.tagline,
-  openGraph: { title: app.name, description: app.tagline, type: "website", url: app.url },
+  openGraph: {
+    title: app.name,
+    description: app.tagline,
+    type: "website",
+    url: app.url,
+  },
 };
 
-/** `width=device-width` plus a floor on zoom. Pinch-zoom stays available; nothing is locked out. */
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#0A0A0A",
+  themeColor: "#A8201A",
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full`}
-      // The project's accent, written once at the root. Every component reads `var(--accent)`, so
-      // this is the only place a palette change has to happen.
-      style={{ ["--accent" as string]: app.accent }}
-    >
-      <body className="min-h-full antialiased">
+    <html lang="en" className={`${lora.variable} ${mulish.variable} h-full`}>
+      <body className="min-h-[100dvh] bg-[var(--bg-base)] text-[var(--text-primary)] antialiased font-[var(--font-sans)] flex flex-col selection:bg-[#FFD36B] selection:text-[#2B0F0D]">
         <EvmProvider>
           <ToastProvider>{children}</ToastProvider>
         </EvmProvider>

@@ -1,29 +1,61 @@
-import { HTMLAttributes } from "react";
+import { forwardRef, type HTMLAttributes } from "react";
 
-interface PanelProps extends HTMLAttributes<HTMLDivElement> {
-  elevated?: boolean;
+export type PanelVariant = "cream" | "gold" | "red" | "plain";
+export type PanelTail = "received" | "sent" | "none";
+
+export interface PanelProps extends HTMLAttributes<HTMLDivElement> {
+  variant?: PanelVariant;
+  tail?: PanelTail;
   noPadding?: boolean;
 }
 
-export default function Panel({
-  elevated,
-  noPadding,
-  children,
-  className = "",
-  style,
-  ...props
-}: PanelProps) {
-  return (
-    <div
-      className={["rounded-none", noPadding ? "" : "p-5", className].join(" ")}
-      style={{
-        background: elevated ? "var(--bg-elevated)" : "var(--bg-surface)",
-        border: "1px solid var(--border-subtle)",
-        ...style,
-      }}
-      {...props}
-    >
-      {children}
-    </div>
-  );
-}
+const variantStyles: Record<PanelVariant, string> = {
+  cream: "bg-[#F8EEDD] text-[#2B0F0D] border border-[#E8DCC8] shadow-sm",
+  gold: "bg-[#FFD36B] text-[#2B0F0D] border border-[#F3C450] shadow-sm",
+  red: "bg-[#8A1611] text-[#FFF6E8] border border-[#7C140F]",
+  plain: "bg-transparent text-inherit",
+};
+
+const tailStyles: Record<PanelTail, string> = {
+  received: "card-received",
+  sent: "card-sent",
+  none: "rounded-[18px]",
+};
+
+const Panel = forwardRef<HTMLDivElement, PanelProps>(
+  (
+    {
+      variant = "cream",
+      tail = "none",
+      noPadding = false,
+      children,
+      className = "",
+      style,
+      ...props
+    },
+    ref
+  ) => {
+    return (
+      <div
+        ref={ref}
+        className={[
+          variantStyles[variant],
+          tailStyles[tail],
+          noPadding ? "" : "p-4 sm:p-5",
+          "relative transition-all duration-150",
+          className,
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        style={style}
+        {...props}
+      >
+        {children}
+      </div>
+    );
+  }
+);
+
+Panel.displayName = "Panel";
+
+export default Panel;
