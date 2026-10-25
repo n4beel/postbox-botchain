@@ -13,7 +13,7 @@
  *   node scripts/local-stack.mjs
  */
 
-import { spawn } from "node:child_process";
+import { spawn, execSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import {
   createPublicClient,
@@ -37,8 +37,22 @@ const local = defineChain({
   rpcUrls: { default: { http: [RPC] } },
 });
 
-console.log(`Starting anvil on port ${PORT}...`);
-spawn("anvil", ["--port", String(PORT), "--chain-id", String(CHAIN_ID), "--accounts", "10", "--silent"], {
+try {
+  execSync(`fuser -k ${PORT}/tcp 2>/dev/null || true`);
+} catch {}
+
+const TOTAL_WARP = 172800; // 2 days in seconds (Day 1: 2 days ago, Day 2: yesterday, Day 3: today)
+const realNow = Math.floor(Date.now() / 1000);
+const startTimestamp = realNow - TOTAL_WARP;
+
+console.log(`Starting anvil on port ${PORT} with start timestamp ${startTimestamp}...`);
+spawn("anvil", [
+  "--port", String(PORT),
+  "--chain-id", String(CHAIN_ID),
+  "--accounts", "10",
+  "--timestamp", String(startTimestamp),
+  "--silent",
+], {
   detached: true,
   stdio: "ignore",
 }).unref();
@@ -197,25 +211,38 @@ const blockTx = await wallets[3].writeContract({
 });
 await pub.waitForTransactionReceipt({ hash: blockTx });
 
+// Assert final chain timestamp is within 120s of wall clock
+const finalBlock = await pub.getBlock();
+const currentWallTime = Math.floor(Date.now() / 1000);
+const diff = Math.abs(Number(finalBlock.timestamp) - currentWallTime);
+console.log(`\nFinal chain timestamp: ${finalBlock.timestamp} (real: ${currentWallTime}, diff: ${diff}s)`);
+if (diff > 120) {
+  throw new Error(`Chain timestamp skewed by ${diff}s, expected <= 120s`);
+}
+
 // Write .env.local
-const envLocal = `NEXT_PUBLIC_CHAIN_ID=968
+const envLocal = `# Written by scripts/local-stack.mjs for Postbox
+NEXT_PUBLIC_BOTCHAIN_NETWORK=testnet
+NEXT_PUBLIC_BOHR_RPC=${RPC}
+NEXT_PUBLIC_CHAIN_ID=968
 NEXT_PUBLIC_RPC_URL_968=${RPC}
 NEXT_PUBLIC_CONTRACT_968=${contractAddress}
-NEXT_PUBLIC_DEPLOY_BLOCK_968=${deployBlock}
+NEXT_PUBLIC_DEPLOY_BLOCK_968=${deployBlock > 1n ? deployBlock - 1n : 1n}
 `;
 writeFileSync(".env.local", envLocal);
-console.log("Wrote .env.local with deployed contract and block number.");
+console.log("Wrote .env.local with deployed contract and testnet RPC.");
 
 console.log(`
 =====================================================
-Postbox local stack ready:
-  RPC:       ${RPC} (Chain ID: ${CHAIN_ID})
-  Contract:  ${contractAddress}
-  Seeded:
-    - Account 0 (${accounts[0].address}): 14 messages from 5 senders across 3 days, pending fees ready to collect
-    - Account 1 (${accounts[1].address}): Price set to 0.01 BOT
-    - Account 2 (${accounts[2].address}): Price set to 0 BOT (free)
-    - Account 3 (${accounts[3].address}): Blocked Account 4 (${accounts[4].address})
-    - Account 5 (${accounts[5].address}): Clean state (no messages)
+Postbox local stack ready on ${RPC}
 =====================================================
+Account Role Table:
+-----------------------------------------------------
+Acc 0: ${accounts[0].address} (14 messages across 3 days, pending fees ready to collect)
+Acc 1: ${accounts[1].address} (Price set to 0.01 BOT)
+Acc 2: ${accounts[2].address} (Price set to 0 BOT / free)
+Acc 3: ${accounts[3].address} (Blocked Acc 4)
+Acc 4: ${accounts[4].address} (Blocked by Acc 3)
+Acc 5: ${accounts[5].address} (Clean inbox / no messages)
+-----------------------------------------------------
 `);

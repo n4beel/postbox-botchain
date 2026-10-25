@@ -20,6 +20,30 @@ contract RevertingRecipient {
   }
 }
 
+contract ReentrantRecipient {
+  Postbox internal postbox;
+  bool public reentered;
+  bytes public attackRevertData;
+
+  constructor(Postbox _postbox) {
+    postbox = _postbox;
+  }
+
+  function withdraw() external {
+    postbox.withdraw();
+  }
+
+  receive() external payable {
+    if (!reentered) {
+      reentered = true;
+      (bool ok, bytes memory data) = address(postbox).call(abi.encodeWithSignature("withdraw()"));
+      if (!ok) {
+        attackRevertData = data;
+      }
+    }
+  }
+}
+
 contract PostboxHandler is Test {
   Postbox public postbox;
   address[] public actors;
@@ -274,6 +298,17 @@ contract PostboxTest is Test {
     vm.prank(alice);
     postbox.send{value: 0.01 ether}(address(revRecv), "Another message");
     assertEq(postbox.pending(address(revRecv)), 0.02 ether);
+  }
+
+  function test_Withdraw_Reentrancy_Reverts() public {
+    ReentrantRecipient attacker = new ReentrantRecipient(postbox);
+    vm.prank(alice);
+    postbox.send{value: 0.01 ether}(address(attacker), "Attack target");
+    assertEq(postbox.pending(address(attacker)), 0.01 ether);
+
+    attacker.withdraw();
+    assertTrue(attacker.reentered());
+    assertEq(bytes4(attacker.attackRevertData()), Postbox.Reentrancy.selector);
   }
 
   function test_InboxPage_NewestFirst_Offsets_Clamp_Empty() public {

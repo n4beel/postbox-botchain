@@ -132,6 +132,8 @@ export function describeError(err: unknown): string {
         return "No fees to collect yet.";
       case "TransferFailed":
         return "Your wallet didn't accept the transfer.";
+      case "Reentrancy":
+        return "Reentrancy guard triggered.";
       case "ZeroAddress":
         return "Invalid recipient address.";
     }

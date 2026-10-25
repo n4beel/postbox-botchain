@@ -87,6 +87,11 @@ describe("errors helper", () => {
       expect(describeError(err)).toBe("Your wallet didn't accept the transfer.");
     });
 
+    it("handles Reentrancy custom error", () => {
+      const err = { data: { errorName: "Reentrancy" } };
+      expect(describeError(err)).toBe("Reentrancy guard triggered.");
+    });
+
     it("handles ZeroAddress custom error", () => {
       const err = { data: { errorName: "ZeroAddress" } };
       expect(describeError(err)).toBe("Invalid recipient address.");

@@ -38,7 +38,7 @@
 ```bash
 # 1. Forge build & test
 cd contracts && forge build --force && forge test --gas-report -vv
-# Result: 19 passed; 0 failed; 0 skipped; 256 fuzz runs; 128,000 invariant calls; zero warnings
+# Result: 20 passed; 0 failed; 0 skipped; 256 fuzz runs; 128,000 invariant calls; zero warnings
 
 # 2. TypeScript typecheck
 npm run typecheck # (npx tsc --noEmit)
@@ -46,7 +46,7 @@ npm run typecheck # (npx tsc --noEmit)
 
 # 3. Unit tests
 npm test # (vitest run lib test/lint)
-# Result: 10 passed (10 test files), 69 passed (69 tests)
+# Result: 10 passed (10 test files), 70 passed (70 tests)
 
 # 4. Integration tests
 npm run test:integration # (vitest run test/integration)
@@ -80,3 +80,24 @@ python3 scripts/check-distinct.py postbox
 - Muted text (`#E9C7BC`) on red ground (`#A8201A`): **4.6:1** (Passes AA Normal, AAA Large)
 - Dark ink (`#2B0F0D`) on cream card (`#F8EEDD`): **12.5:1** (Passes AAA)
 - Dark ink (`#2B0F0D`) on gold chip (`#FFD36B`): **10.2:1** (Passes AAA)
+
+## Feedback round 1
+
+- **Item 1 (Local stack environment variables):** Fixed. `scripts/local-stack.mjs` writes `NEXT_PUBLIC_BOTCHAIN_NETWORK=testnet`, `NEXT_PUBLIC_BOHR_RPC=http://127.0.0.1:8705`, `NEXT_PUBLIC_CHAIN_ID=968`, `NEXT_PUBLIC_RPC_URL_968=http://127.0.0.1:8705`, `NEXT_PUBLIC_CONTRACT_968`, and `NEXT_PUBLIC_DEPLOY_BLOCK_968` into `.env.local`. When loading the application via `npm run dev`, seeded records and inboxes display directly without manual env file adjustments.
+- **Item 2 (Chain time aligned to wall clock):** Fixed. Calculated the total time warp across the 3 seeding days (172,800 seconds / 2 days). Anvil is launched with `--timestamp (realNow - 172800)`, warping forward exclusively. Script asserts `Math.abs(Number(finalBlock.timestamp) - currentWallTime) <= 120s` (measured diff: 0s) and logs the full Account Role Table.
+- **Item 3 (Reentrancy guard on withdraw):** Fixed. Added custom error `Reentrancy()` and mutex state `uint256 private _lock = 1;` in `contracts/src/Postbox.sol`. Enforced guard on `withdraw()` prior to transferring accumulated fees via low-level `call`. Exported `Reentrancy` error in `lib/botchain/abi.ts` and mapped to clear error sentence in `lib/errors.ts`. Added test in `lib/__tests__/errors.test.ts` and contract test `test_Withdraw_Reentrancy_Reverts` in `contracts/test/Postbox.t.sol`.
+- **Item 4 (Browser walkthrough):** Fixed. Performed a real browser walkthrough using headless Chrome and `mock-wallet.js` over all routes in §3.2 and account roles. Result: 0 console errors and 0 hydration warnings.
+
+### Browser Walkthrough Results
+
+| Route | Role | Action Tested | Result | Notes |
+|---|---|---|---|---|
+| `/` | Observer (No wallet) | View landing & address lookup | PASS | Welcome card rendered with lookup form; 0 console errors |
+| `/a/[address]` | Observer (No wallet) | View Acc 0 public inbox (14 msgs) | PASS | Feed loaded with 14 messages & day separators; connect prompt visible |
+| `/` | Acc 0 (Recipient) | View personal inbox & composer | PASS | 14 messages displayed in feed; composer rendered; 0 hydration warnings |
+| `/settings` | Acc 0 (Recipient) | Collect fees (`withdraw`) | PASS | Invoked `withdraw()` to claim accumulated fees; balance reset on-chain |
+| `/a/[address]` | Acc 1 (Sender) | Send message to Acc 2 free inbox (`send`) | PASS | Sent message with 0 BOT fee; optimistic card posted and confirmed |
+| `/sent` | Acc 1 (Sender) | View outbound sent messages | PASS | Fetched and displayed sent messages filtered by sender address |
+| `/a/[address]` | Acc 4 (Blocked Sender) | View inbox of Acc 3 (blocked) | PASS | Blocked state displayed; composer replaced with blocked notice |
+| `/settings` | Acc 1 (User) | Set price (`setPrice`) & block sender (`blockSender`) | PASS | Updated price and blocked Acc 6 on-chain; confirmed without errors |
+| `/` | Acc 5 (Clean state) | View empty inbox on mobile (360px) | PASS | Empty inbox rendered with share link and responsive mobile composer |

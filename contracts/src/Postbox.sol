@@ -59,6 +59,9 @@ contract Postbox {
   error PriceNotMet(uint256 price, uint256 sent);
   error NothingToWithdraw();
   error TransferFailed();
+  error Reentrancy();
+
+  uint256 private _lock = 1;
 
   // --- Functions ---
 
@@ -118,8 +121,14 @@ contract Postbox {
 
   /// @notice Collect accumulated messaging fees
   function withdraw() external {
+    if (_lock != 1) {
+      revert Reentrancy();
+    }
+    _lock = 2;
+
     uint256 amount = pending[msg.sender];
     if (amount == 0) {
+      _lock = 1;
       revert NothingToWithdraw();
     }
 
@@ -131,6 +140,8 @@ contract Postbox {
     if (!ok) {
       revert TransferFailed();
     }
+
+    _lock = 1;
   }
 
   /// @notice Price required to message an address in wei
