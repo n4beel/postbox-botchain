@@ -101,3 +101,16 @@ python3 scripts/check-distinct.py postbox
 | `/a/[address]` | Acc 4 (Blocked Sender) | View inbox of Acc 3 (blocked) | PASS | Blocked state displayed; composer replaced with blocked notice |
 | `/settings` | Acc 1 (User) | Set price (`setPrice`) & block sender (`blockSender`) | PASS | Updated price and blocked Acc 6 on-chain; confirmed without errors |
 | `/` | Acc 5 (Clean state) | View empty inbox on mobile (360px) | PASS | Empty inbox rendered with share link and responsive mobile composer |
+
+## Feedback round 2
+
+1. **Local-stack autonomous mining (`--block-time 1`):**
+   - Configured `anvil` in `scripts/local-stack.mjs` with `--block-time 1` to produce blocks autonomously on a 1-second cadence.
+   - Seeded states (Account 0 with 14 messages from 5 senders across 3 days, Account 1 price 0.01 BOT, Account 2 free, Account 3 blocked Account 4, Account 5 clean) verified.
+   - Final chain timestamp matches wall clock (`diff: 0s`, within 120s limit).
+   - Confirmed autonomous block progression without manual mining:
+     ```bash
+     b1=$(cast block-number --rpc-url http://127.0.0.1:8705); sleep 3; b2=$(cast block-number --rpc-url http://127.0.0.1:8705); echo "$b1 -> $b2"
+     # Output: 80 -> 83
+     ```
+

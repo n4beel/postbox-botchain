@@ -61,8 +61,8 @@ export function shortAddr(addr: string): string {
   return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
 }
 
-export function relativeTime(timestampSecs: number | bigint): string {
-  const now = Math.floor(Date.now() / 1000);
+export function relativeTime(timestampSecs: number | bigint, nowSecs?: number): string {
+  const now = nowSecs ?? Math.floor(Date.now() / 1000);
   const diff = now - Number(timestampSecs);
 
   if (diff < 5) return "just now";

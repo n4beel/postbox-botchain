@@ -51,6 +51,7 @@ spawn("anvil", [
   "--chain-id", String(CHAIN_ID),
   "--accounts", "10",
   "--timestamp", String(startTimestamp),
+  "--block-time", "1",
   "--silent",
 ], {
   detached: true,
@@ -246,3 +247,4 @@ Acc 4: ${accounts[4].address} (Blocked by Acc 3)
 Acc 5: ${accounts[5].address} (Clean inbox / no messages)
 -----------------------------------------------------
 `);
+process.exit(0);

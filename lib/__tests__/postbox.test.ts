@@ -85,31 +85,31 @@ describe("postbox utilities", () => {
   });
 
   describe("relativeTime", () => {
-    const nowSecs = Math.floor(Date.now() / 1000);
+    const nowSecs = 1_700_000_000;
 
     it("formats just now", () => {
-      expect(relativeTime(nowSecs - 2)).toBe("just now");
+      expect(relativeTime(nowSecs - 2, nowSecs)).toBe("just now");
     });
 
     it("formats seconds ago", () => {
-      expect(relativeTime(nowSecs - 30)).toBe("30s ago");
+      expect(relativeTime(nowSecs - 30, nowSecs)).toBe("30s ago");
     });
 
     it("formats minutes ago", () => {
-      expect(relativeTime(nowSecs - 120)).toBe("2m ago");
+      expect(relativeTime(nowSecs - 120, nowSecs)).toBe("2m ago");
     });
 
     it("formats hours ago", () => {
-      expect(relativeTime(nowSecs - 7200)).toBe("2h ago");
+      expect(relativeTime(nowSecs - 7200, nowSecs)).toBe("2h ago");
     });
 
     it("formats days ago", () => {
-      expect(relativeTime(nowSecs - 172800)).toBe("2d ago");
+      expect(relativeTime(nowSecs - 172800, nowSecs)).toBe("2d ago");
     });
 
     it("formats calendar date for older timestamps", () => {
       const older = nowSecs - 86400 * 30; // 30 days ago
-      const str = relativeTime(older);
+      const str = relativeTime(older, nowSecs);
       expect(str).toMatch(/[A-Z][a-z]{2}\s\d+/);
     });
   });
