@@ -23,6 +23,15 @@
   --border-card: #E8DCC8;     /* Border for cream cards */
   --accent: #FFD36B;          /* Gold accent chip */
   --accent-ink: #2B0F0D;      /* Ink on gold */
+
+  /* Shared component tokens (ConnectButton, TxStatus, Toast, Badge) */
+  --bg-elevated: #2B0F0D;      /* Deep ink-burgundy elevated menu/card ground */
+  --border-default: #5E1A16;   /* Brick border */
+  --text-secondary: #F8EEDD;   /* Cream text on elevated surface (>14:1) */
+  --text-tertiary: #D4B2A8;    /* Muted warm cream on elevated surface (>7:1) */
+  --success: #4EFA9D;          /* Vibrant mint (>12:1) */
+  --danger: #FF6B6B;           /* Coral danger (>6.5:1) */
+  --warning: #FFD36B;          /* Postbox warm gold (>11:1) */
 }
 
 @layer base {

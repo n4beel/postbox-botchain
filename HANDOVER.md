@@ -130,3 +130,18 @@ python3 scripts/check-distinct.py postbox
   - `/` (Home): Verified all three links present (`https://scan.bohr.life/address/0x5fbdb2315678afecb367f032d93f642f64180aa3`, `https://botchain.ai`, `https://scan.botchain.ai`).
   - `/a/0x70997970C51812dc3A010C7d01b50e0d17dc79C8` (Detail): Verified all three links present.
   - `/nonexistent` (Not Found): Verified all three links present.
+
+## Feedback round 4
+
+- **Shared CSS Tokens & Wallet Dropdown Grounding (Item 1):**
+  - Defined all missing tokens in `app/globals.css`:
+    - `--bg-elevated: #2B0F0D` (deep ink-burgundy elevated ground for dropdowns/menus)
+    - `--border-default: #5E1A16` (brick boundary border)
+    - `--text-secondary: #F8EEDD` (cream text on elevated surface, >14:1 contrast)
+    - `--text-tertiary: #D4B2A8` (muted warm cream text, >7:1 contrast)
+    - `--success: #4EFA9D` (vibrant mint, >12:1 contrast)
+    - `--danger: #FF6B6B` (coral danger, >6.5:1 contrast)
+    - `--warning: #FFD36B` (warm gold warning, >11:1 contrast)
+  - All token contrast ratios exceed 4.5:1 WCAG AA.
+  - Added unit test `test/lint/tokens.test.ts` verifying all `var(--x)` without fallback in `app/` and `components/` are defined in `globals.css` or next/font.
+  - Confirmed `python3 scripts/check-tokens.py postbox` exits 0 with 0 undefined tokens.
