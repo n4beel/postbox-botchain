@@ -10,7 +10,7 @@ import NetworkBadge from "@/components/botchain/NetworkBadge";
 import BuiltOnBotChain from "@/components/botchain/BuiltOnBotChain";
 import { app } from "@/lib/app-config";
 import { postboxAbi } from "@/lib/botchain/abi";
-import { isBotChainId } from "@/lib/botchain/chain";
+import { isBotChainId, footerLinks } from "@/lib/botchain/chain";
 import { getDeployment } from "@/lib/botchain/deployment";
 import { NAV_ITEMS, type SegmentTab } from "@/lib/nav";
 
@@ -23,6 +23,7 @@ export default function PageShell({ children }: PageShellProps) {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
   const deployment = isBotChainId(chainId) ? getDeployment(chainId) : undefined;
+  const { site, explorer } = footerLinks();
 
   const [hasUnread, setHasUnread] = useState(false);
 
@@ -162,7 +163,7 @@ export default function PageShell({ children }: PageShellProps) {
             </span>
             <span>·</span>
             <a
-              href="https://botchain.ai"
+              href={site}
               target="_blank"
               rel="noreferrer"
               className="hover:text-[#FFF6E8] underline underline-offset-2"
@@ -171,7 +172,7 @@ export default function PageShell({ children }: PageShellProps) {
             </a>
             <span>·</span>
             <a
-              href="https://scan.botchain.ai"
+              href={explorer}
               target="_blank"
               rel="noreferrer"
               className="hover:text-[#FFF6E8] underline underline-offset-2"
